@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        #reader {
+            width: 100%;
+            height: 400px;
+            display: none;
+        }
+        .scanner-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .scanner-container .reader {
+            flex: 1;
+            max-height: 400px;
+        }
+        .scanner-container .scanned-codes {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .scanner-container {
+                flex-direction: row;
+            }
+            .scanner-container .reader {
+                max-height: 100vh;
+            }
+            .scanner-container .scanned-codes {
+                max-height: 100vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">QR Code Scanner</h1>
+        <button id="startScan" class="btn btn-primary btn-block">Start QR Code Scan</button>
+        <div class="scanner-container mt-4">
+            <div id="reader" class="reader"></div>
+            <div class="scanned-codes">
+                <h4>Scanned QR Codes</h4>
+                <ul id="scannedCodes" class="list-group">
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <!-- Bootstrap Bundle (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Html5-qrcode library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js" integrity="sha512-r6rDA7W6ZeQhvl8S7yRVQUKVHdexq+GAlNkNNqVC7YyIV+NwqCTJe2hDWCiffTyRNOeGEzRRJ9ifvRm/HCzGYg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script>
+        let html5QrCode;
+        let isScanning = false;
+        const scannedCodes = new Set();
+
+        function onScanSuccess(qrCodeMessage) {
+            if (!scannedCodes.has(qrCodeMessage)) {
+                scannedCodes.add(qrCodeMessage);
+                $('#scannedCodes').append(`<li class="list-group-item">${qrCodeMessage}</li>`);
+            }
+        }
+
+        function onScanError(errorMessage) {
+            // Optionally provide feedback on errors
+            console.error("Scan error: ", errorMessage);
+        }
+
+        $(document).ready(function() {
+            $('#startScan').click(function() {
+                if (!isScanning) {
+                    $('#startScan').text('Scanning...').prop('disabled', true);
+                    $('#reader').show();
+                    html5QrCode = new Html5Qrcode("reader");
+                    html5QrCode.start(
+                        { facingMode: "environment" }, // Can be adjusted to "user" for front camera
+                        {
+                            fps: 10,    // Optional, adjust based on performance
+                            qrbox: 250  // Optional, adjust box size for scanning
+                        },
+                        onScanSuccess,
+                        onScanError
+                    ).then(() => {
+                        isScanning = true;
+                        $('#startScan').text('Stop QR Code Scan').prop('disabled', false);
+                    }).catch(err => {
+                        console.error("Start error: ", err);
+                        $('#startScan').text('Start QR Code Scan').prop('disabled', false);
+                        $('#reader').hide();
+                    });
+                } else {
+                    html5QrCode.stop().then(() => {
+                        $('#reader').hide();
+                        $('#startScan').text('Start QR Code Scan').prop('disabled', false);
+                        isScanning = false;
+                    }).catch(err => {
+                        console.error("Stop error: ", err);
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
