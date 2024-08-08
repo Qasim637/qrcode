@@ -74,7 +74,8 @@
             if (!scannedCodes.has(qrCodeMessage)) {
                 scannedCodes.add(qrCodeMessage);
                 $('#scannedCodes').append(`<li class="list-group-item">${qrCodeMessage}</li>`);
-                // Play the beep sound
+                // Reset and play the beep sound
+                beepSound.currentTime = 0;
                 beepSound.play();
             }
         }
@@ -119,5 +120,4 @@
         });
     </script>
 </body>
-
 </html>
